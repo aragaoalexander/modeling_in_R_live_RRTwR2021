@@ -90,6 +90,10 @@ hist(bike_lm_residuals$residuals)
 bike_linear_data$predicted_cnt <- predict(linear_model)
 head(bike_linear_data)
 
+bike_linear_data$residuals <- residuals(linear_model)
+head(bike_linear_data)
+
+
 # Visualize residual deviation from the modeled predictions 3 ways
 
 # 1. Visualize model and points 
@@ -105,7 +109,7 @@ bike_linear_data %>%
 bike_linear_data %>%
   ggplot(mapping = aes(x = feeling_temperature, y = cnt))+
   geom_hex(bins = 10)+
-  geom_smooth(method = "lm", se = TRUE)+ #se is stdr error
+  geom_smooth(method = "lm", se = TRUE)+ #se is stdr error #method is linear model
   scale_fill_viridis_c(option = "plasma", name = "Number of\nPoints")+
   theme_minimal()
 
@@ -126,12 +130,31 @@ bike_linear_data %>%
 
 ## Challenge Number 2
 ## Challenge Number 2a: Create a new data frame of temperatures
-## from 0 to 50 with increments of, and predict values for 
+## from 0 to 50 with increments of, and predict values of counts (cnt) for 
 ## the new dataset. 
 ## Challenge Number 2b: Plot those new predictions.  
 ## Challenge 2c: Add a label in the plot with the linear model
 ## formula. 
+  
+prediction_data <- data.frame(feeling_temperature = seq(from = 0, to = 50, by = 0.25))
 
+head(prediction_data)
+
+prediction_data$predicted_cnt <- predict(object = linear_model,
+                                         newdata = prediction_data)
+
+head(prediction_data)
+
+ggplot()+
+  geom_point(data = bike_linear_data, mapping = (aes(x = feeling_temperature,
+                                                     y = cnt)), alpha = 0.33)+
+  geom_point(data = prediction_data, mapping = (aes(x = feeling_temperature,
+                                                    y = predicted_cnt)), shape = 18)+
+  annotate(geom = "label", label = paste("count = ", round(x = slope, digits = 2), "(Feeling Temperature) + ", round(y_intercept,2)),
+           x = 15, y = 7500, size = 4) +
+  xlab("Feeling Temperature") +
+  ylab("Total Bikes Rented")+
+  theme_minimal()
 
 # 2. Multiple Linear Regression -------------------------------------------
 
