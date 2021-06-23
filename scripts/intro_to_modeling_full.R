@@ -82,15 +82,12 @@ bike_lm_residuals <- bike_lm_residuals %>%
   transmute(residuals = linear_model$residuals[1:731]) %>%
   mutate(instant = bike_data$instant)
 
-hist(bike_lm_residuals$residuals)
 
+hist(bike_lm_residuals$residuals)
 # Getting predictions from a linear model for the 
 # data values contained in the dataset
 
 bike_linear_data$predicted_cnt <- predict(linear_model)
-head(bike_linear_data)
-
-bike_linear_data$residuals <- residuals(linear_model)
 head(bike_linear_data)
 
 # Visualize residual deviation from the modeled predictions 3 ways
