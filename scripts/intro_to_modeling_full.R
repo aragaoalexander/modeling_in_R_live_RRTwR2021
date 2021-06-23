@@ -159,6 +159,12 @@ ggplot()+
 # 2. Multiple Linear Regression -------------------------------------------
 
 # Multiple continuous predictors
+multiple_bike_data <- bike_data %>%
+  mutate(feeling_temperature = atemp * 50,
+         humidity = hum * 100,
+         windiness = windspeed * 67)
+
+
 
 # Create a new dataset for multiple linear regression 
 # with continuous variables. 
