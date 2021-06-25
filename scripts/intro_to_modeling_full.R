@@ -254,6 +254,54 @@ mixed_type_model <- mixed_bike_data %>%
 
 summary(mixed_type_model)
 
+ggplot(data = mixed_bike_data,
+       mapping = aes(x = humidity,
+                     y = cnt)) +
+  geom_smooth(method = "lm", se = TRUE) +
+  geom_point(alpha = 0.2) + 
+  facet_grid(~weather_type)
+
+ggplot(data = mixed_bike_data,
+       mapping = aes(x = windiness,
+                     y = cnt)) +
+  geom_smooth(method = "lm", se = TRUE) +
+  geom_point(alpha = 0.2) + 
+  facet_grid(~weather_type)
+
+ggplot(data = mixed_bike_data,
+       mapping = aes(x = feeling_temperature,
+                     y = cnt)) +
+  geom_smooth(method = "lm", se = TRUE) +
+  geom_point(alpha = 0.2) + 
+  facet_grid(~weather_type)
+
+mixed_bike_data %>%
+  ggplot(mapping = aes(x = feeling_temperature,
+                       y = windiness,
+                       color = cnt)) +
+  geom_point(alpha = 0.7)+
+  scale_color_viridis_c()+
+  facet_grid(~weather_type)+
+  theme_minimal()
+
+mixed_bike_data %>%
+  ggplot(mapping = aes(x = feeling_temperature,
+                       y = humidity,
+                       color = cnt)) +
+  geom_point(alpha = 0.7)+
+  scale_color_viridis_c()+
+  facet_grid(~weather_type)+
+  theme_minimal()
+
+mixed_bike_data %>%
+  ggplot(mapping = aes(x = windiness,
+                       y = humidity,
+                       color = cnt)) +
+  geom_point(alpha = 0.7)+
+  scale_color_viridis_c()+
+  facet_grid(~weather_type)+
+  theme_minimal()
+
 # 3. Non-Linear Modeling --------------------------------------------------
 
 
@@ -261,19 +309,67 @@ summary(mixed_type_model)
 
 # Create a special dataset
 
+bike_nonlinear_data <- bike_data %>%
+  mutate(feeling_temperature = atemp*50) %>%
+  select(feeling_temperature, cnt)
 
 # Remind ourselves what these data looked like
+bike_nonlinear_data %>%
+  ggplot(aes(feeling_temperature,cnt))+
+  geom_point()
 
 # Build the model
 
+polynomial_bike_model <- bike_nonlinear_data %>% 
+  lm(formula = cnt ~ poly(x = feeling_temperature, degree = 3))
 
+summary(polynomial_bike_model)
 
 # Quick Challenge: Create a dataset with feeling_temperature ranges from 0 to 45 by 0.25 increments
-# And predict bike ridership using the cubic function we just created. 
+# And predict bike ridership using the cubic function we just created.
 
+prediction_nonlinear_data <- data.frame(feeling_temperature = seq(from = 0, to = 45, by = 0.25))
 
-# Build the model
+prediction_nonlinear_data$predicted_cnt <- predict(object = polynomial_bike_model,
+                                                   newdata = prediction_nonlinear_data)
 
+head(prediction_nonlinear_data)
+
+ggplot()+
+  geom_point(data = bike_nonlinear_data, mapping = (aes(x = feeling_temperature,
+                                                        y = cnt)), alpha = 0.33)+
+  geom_point(data = prediction_nonlinear_data, mapping = (aes(x = feeling_temperature,
+                                                              y = predicted_cnt)), shape = 18)+
+  annotate(geom = "label", label = paste("count = ", round(x = slope, digits = 2), "(Feeling Temperature) + ", round(y_intercept,2)),
+           x = 15, y = 7500, size = 4) +
+  xlab("Feeling Temperature") +
+  ylab("Total Bikes Rented")+
+  theme_minimal()
+
+# Build the model including only the x^3 term
+
+polynomial_bike_model_2 <- bike_nonlinear_data %>% 
+  lm(formula = cnt ~ poly(x = I(feeling_temperature^3)))
+
+summary(polynomial_bike_model_2)
+
+prediction_nonlinear_data <- data.frame(feeling_temperature = seq(from = 0, to = 45, by = 0.25))
+
+prediction_nonlinear_data$predicted_cnt <- predict(object = polynomial_bike_model_2,
+                                                   newdata = prediction_nonlinear_data)
+
+head(prediction_nonlinear_data)
+
+ggplot()+
+  geom_point(data = bike_nonlinear_data, mapping = (aes(x = feeling_temperature,
+                                                        y = cnt)), alpha = 0.33)+
+  geom_point(data = prediction_nonlinear_data, mapping = (aes(x = feeling_temperature,
+                                                              y = predicted_cnt)), shape = 18)+
+  annotate(geom = "label", label = paste("count = ", round(x = slope, digits = 2), "(Feeling Temperature) + ", round(y_intercept,2)),
+           x = 15, y = 7500, size = 4) +
+  xlab("Feeling Temperature") +
+  ylab("Total Bikes Rented")+
+  theme_minimal()
 
 # 3.2 General Additive Models ---------------------------------------------
 
