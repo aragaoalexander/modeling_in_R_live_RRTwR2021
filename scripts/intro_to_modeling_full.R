@@ -373,24 +373,71 @@ ggplot()+
 
 # 3.2 General Additive Models ---------------------------------------------
 
-# Build the model 
+# Build the model
 # We will rerun this same R code multiple times using different 
 # values for gamma. 
 # Remember: Gamma is like a wiggliness factor (per Gavin Simpson),
 # where gamma closer to zero is very wiggly, and gamma greater than 1
 # less wiggly. 
 
+bike_gam_model <- gam(cnt ~ s(feeling_temperature),
+                       data = bike_nonlinear_data,
+                       method = "REML", gamma = 1)
+
+summary(bike_gam_model)
+
+plot(bike_gam_model)
 
 
-# 3.3 Logistic Regresssion ------------------------------------------------
+
+# 3.3 Logistic Regression ------------------------------------------------
 
 # First look at some data that we will be modeling
 
+bike_data %>%
+  ggplot(aes(registered)) + 
+  geom_histogram()+
+  facet_grid(~workingday)
+
+bike_data %>%
+  ggplot(aes(registered)) + 
+  geom_density()+
+  facet_grid(~workingday)
+
+bike_data %>%
+  group_by(workingday) %>%
+  summarise(mean_registered = mean(registered))
+
 # Build the model 
 
+logistic_model <- glm(formula = workingday ~ registered,
+                      data = bike_data,
+                      family = binomial())
 
-## Challenge 4: Knowing what we've learned, plot this model for values of 
+summary(logistic_model)
+
+## Challenge 4: Knowing what we've learned, plot this model for values of registered 
 ## 0 through 7000 by steps of 10, and add the fitted model probabilities 
 ## to the plot. (Hint: values from a logistic are as log odds, so check 
 ## documentation for how to convert this automatically in the "predict" 
 ## function. 
+
+prediction_logistic_data <- data.frame(registered = seq(from = 0, to = 7000, by = 10))
+
+head(prediction_logistic_data)
+
+prediction_logistic_data$predicted_workingday <- predict(object = logistic_model,
+                                         newdata = prediction_logistic_data,
+                                         type = "response")
+
+head(prediction_logistic_data)
+
+ggplot()+
+  geom_point(data = bike_data, mapping = aes(registered, workingday)) +
+  geom_point(data = prediction_logistic_data, mapping = aes(registered, predicted_workingday),
+             shape = 18, color = "blue") +
+  xlab("Registered bike reservations") +
+  ylab("Is it a working day?")
+
+
+
