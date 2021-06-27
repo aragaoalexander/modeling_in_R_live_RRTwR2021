@@ -24,32 +24,77 @@ bike_data_cleaned <- bike_data %>%
                                levels = c(1,2,3,4),
                                labels = c("Clear", "Cloudy", "Rainy", "Snowy")))
 
+head(bike_data_cleaned)
+
 # Build the linear model
+
+bike_model <- lm(cnt ~ season + workingday + weather_type + temp,
+                 data = bike_data_cleaned)
+
+summary(bike_model)
 
 # Extracting coefficients with the tidy function
 
+tidy(bike_model)
+
 # Extracting model performance with glance
+
+glance(bike_model)
 
 # Extract residuals
 
+augment(bike_model) #adds residuals and other info to the model dataframe
+
 # Plotting estimates from the model
 
-
+ggplot(data = tidy(bike_model)) +
+  geom_point(aes(x = term,
+                 y = estimate)) +
+  geom_errorbar(aes(x = term,
+                    ymin = estimate-std.error,
+                    ymax = estimate + std.error))
 
 # 2. Using purrr to build multiple models ---------------------------------
 
 # Format the data
 
+summary(bike_data_cleaned)
 
+bike_data_grouped <- bike_data_cleaned %>%
+  mutate(temp_bin = cut(temp,
+                        breaks = c(0, seq(from = 0.2, to = 0.9, by = 0.1)),
+                        labels = seq(0.2, 0.9, by = 0.1),
+                        right = FALSE))
+
+head(bike_data_grouped)
 
 # Create a nested dataframe
 
+bike_data_purr <- bike_data_grouped %>%
+  nest(data = -temp_bin) %>%
+  mutate(model = map(.x = data,
+                     .f = ~lm(cnt ~ temp, data = .x)),
+         tidy_model = map(.x = model, 
+                          .f = ~ tidy(.x))) %>%
+  unnest(tidy_model) %>%
+  arrange(temp_bin)
 
+head(bike_data_purr)
 
 # Plot the estimates with standard error
 
-
+ggplot(data = bike_data_purr %>% filter(term == "temp")) +
+  geom_point(aes(x = temp_bin, y = estimate))+
+  geom_errorbar(aes(x = temp_bin,
+                    ymin = estimate - std.error,
+                    ymax = estimate + std.error))+
+  geom_hline(aes(yintercept = 0), linetype = "dotted", size = 2)+
+  theme_minimal()
 
 # Plotting regression segments 
 
+ggplot(data = bike_data_grouped)+
+  geom_point(aes(x = temp, y = cnt), alpha = 0.33)+
+  geom_smooth(aes(x = temp, y = cnt, group = temp_bin), method = "lm")+
+  theme_minimal()
 
